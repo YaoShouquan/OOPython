@@ -1,4 +1,4 @@
-#这个FT方法来源于YouTube上3Bule1Brown的视频，链接：https://www.youtube.com/watch?v=spUNpyF58BY
+#这个FT思想来源于YouTube上3Bule1Brown的视频，链接：https://www.youtube.com/watch?v=spUNpyF58BY
 #思想就是用不同的频率把时域函数图像缠绕在极坐标上，通过计算缠绕图形的重心得到信号的频率和相位
 
 import math
