@@ -1,0 +1,185 @@
+#这个FT方法来源于YouTube上3Bule1Brown的视频，链接：https://www.youtube.com/watch?v=spUNpyF58BY
+#思想就是用不同的频率把时域函数图像缠绕在极坐标上，通过计算缠绕图形的重心得到信号的频率和相位
+
+import math
+import numpy
+import numpy as np
+import matplotlib.pyplot as plt
+
+#定义采样时间
+TIME=9
+dT=0.01
+t=numpy.arange(0,TIME,dT)
+step_T=TIME/dT
+
+#定义频率采样间隔
+Hz_B=0
+Hz_T=50
+dHz=0.1
+Hz=numpy.arange(Hz_B,Hz_T,dHz)
+step_Hz=(Hz_T-Hz_B)/dHz
+
+signal=[]                                                   #时间域信号数组
+pl_cdnt_before=[[[],[]]for i in range(int(step_Hz))]        #以不同的频率缠绕在极坐标上的信号
+pl_cdnt_after=[[]for i in range(int(step_Hz))]              #进行坐标平均后的极坐标信号值
+rctgl_cdnt=[[[],[]]for i in range(int(step_Hz))]            #从极坐标转换得到的直角坐标信号
+xy=[[] for i in range(int(step_Hz))]                        #进行坐标平均后的直角坐标信号值
+A=[]                                                        #傅里叶变换后频率幅值
+P=[]                                                        #傅里叶变换后相位值
+
+
+#创建待处理的正弦信号。使用三个余弦波合成的方式产生。函数中参数分别为：
+#信号数组，三个信号的频率，三个信号的幅值，三个信号的相位
+def creat_signal(signal,s1_Hz,s2_Hz,s3_Hz,s1_A,s2_A,s3_A,s1_P,s2_P,s3_P):
+
+    for i in range(0,int(step_T)):
+        signal.append(s1_A*math.cos(i/100*2*s1_Hz*math.pi-s1_P)+s2_A*math.cos(i/100*2*s2_Hz*math.pi-s2_P)+s3_A*math.cos(i/100*2*s3_Hz*math.pi-s3_P))
+
+
+def creat_sq_signal(signal,s1_Hz,s1_A):
+
+    t=1/s1_Hz
+    step=int(t/dT/2)
+
+    j=0
+    for i in range(0,int(step_T)):
+        if j<step:
+            signal.append(s1_A/2)
+        else:
+            signal.append(-s1_A/2)
+        j+=1
+        if j==(2*step):
+            j=0
+
+
+def show_plot(x,y):
+
+    plt.plot(x,y)
+    plt.show()
+
+
+def show_pl_plot(r,theta):
+
+    ax=plt.subplot(111,projection='polar')
+    ax.plot(theta,r)
+    plt.show()
+
+
+#极坐标到直角坐标的转换
+def pl_to_rctgl(pl_cdnt,rctgl_cdnt):
+
+    for i in range(0,int(step_T)):
+        x=pl_cdnt[0][i]*math.cos(pl_cdnt[1][i])
+        y=pl_cdnt[0][i]*math.sin(pl_cdnt[1][i])
+        rctgl_cdnt[0].append(x)
+        rctgl_cdnt[1].append(y)
+
+
+#计算直角坐标中点的平均值
+def avg_xy(rctgl_cdnt,xy):
+
+    avg_x=0
+    avg_y=0
+    num=0
+
+    for i in range(0,int(step_T)):
+        avg_x+=rctgl_cdnt[0][i]
+        avg_y+=rctgl_cdnt[1][i]
+        num+=1
+
+    avg_x=avg_x/num
+    avg_y=avg_y/num
+    xy.append(avg_x)
+    xy.append(avg_y)
+
+
+#直角坐标到极坐标的转换
+def xy_to_pl(xy,pl):
+
+    r=math.sqrt(xy[0]*xy[0]+xy[1]*xy[1])
+
+    if xy[0]>0:
+        if xy[1]>0:
+            tt=math.atan(xy[1]/xy[0])
+        else:
+            tt=math.atan(xy[1]/xy[0])+2*math.pi
+    else:
+        if xy[1]>0:
+            tt=math.atan(xy[1]/xy[0])+math.pi
+        else:
+            tt=math.atan(xy[1]/xy[0])+math.pi
+
+    pl.append(r)
+    pl.append(tt)
+
+
+#展示结果,函数中参数分别为：
+#时域信号，频域幅值，频域相位，信号缠绕图像，平均后的信号缠绕图像，要查看的缠绕频率，是否要查看缠绕图像
+def show_result(signal,A,P,pl_cdnt_before,pl_cdnt_after,W_Hz,show_transform):
+
+    plt.figure(1)
+
+    ax1=plt.subplot(511)
+    plt.title('signal')
+    plt.xlabel('Time')
+    plt.ylabel('Range')
+    ax2=plt.subplot(513)
+    plt.title('FT Frequence')
+    plt.xlabel('Hz')
+    plt.ylabel('Range of Frequence')
+    ax3=plt.subplot(515)
+    plt.title('FT Phase')
+    plt.xlabel('Hz')
+    plt.ylabel('Range of Phase')
+
+    ax1.plot(t,signal)
+    ax2.plot(Hz,A)
+    ax3.plot(Hz,P)
+   
+    if show_transform:
+        plt.figure(2)
+
+        ax4=plt.subplot(121,projection='polar')
+        plt.title('signal roll on polar')
+        ax5=plt.subplot(122,projection='polar')
+        plt.title('after average')
+
+        ax4.plot(pl_cdnt_before[int(W_Hz)*10][1],pl_cdnt_before[int(W_Hz)*10][0])
+        ax5.scatter(pl_cdnt_after[int(W_Hz)*10][1],pl_cdnt_after[int(W_Hz)*10][0])
+
+    plt.show()
+ 
+
+
+#创建时域信号
+#creat_signal(signal,0.5,27.45,39.02,1,2,3,1.9*math.pi,0.8*math.pi,0.25*math.pi)
+creat_sq_signal(signal,1,1.1)
+
+#进行信号的缠绕
+i=0
+for point in signal:
+    j=0
+    for Hz_p in Hz:
+        dST=2*math.pi*Hz_p*dT
+        if point<0:
+            pl_cdnt_before[j][0].append(-point)
+            pl_cdnt_before[j][1].append(i*dST+math.pi)
+        else:
+            pl_cdnt_before[j][0].append(point)
+            pl_cdnt_before[j][1].append(i*dST) 
+        j+=1
+    i+=1
+
+#进行坐标变换和计算
+for i in range(int(step_Hz)):
+    pl_to_rctgl(pl_cdnt_before[i],rctgl_cdnt[i])
+    avg_xy(rctgl_cdnt[i],xy[i])
+    xy_to_pl(xy[i],pl_cdnt_after[i])
+    A.append(2*pl_cdnt_after[i][0])
+    if pl_cdnt_after[i][0]<0.1:
+        P.append(0)
+    else:
+        P.append(pl_cdnt_after[i][1])
+
+#显示结果
+show_result(signal,A,P,pl_cdnt_before,pl_cdnt_after,15,0)
