@@ -1,0 +1,95 @@
+#随机生长模型，以0,0点为核心随机往外生长的模型
+
+import math
+import numpy
+import random
+import numpy as np
+import matplotlib.pyplot as plt
+
+#N定义循环次数，并不是点次数，因为不在区间内的点会被直接归零，不会计入
+#side定义区间大小
+N=200
+side=100
+
+#定义粒子数组
+particle=[[],[]]
+
+
+#显示粒子
+def show_graph(x,y):
+
+    plt.scatter(x,y)
+    plt.show()
+
+
+#计算距离
+def cal_r(x,y):
+
+     return math.sqrt(x*x+y*y)
+
+
+num=-1
+for i in range(N):
+
+    num+=1
+    cal=num/N*100
+    print("\r calculating %.2f%%"%(cal),end='')
+
+    #随机生成粒子初始位置
+    for j in range(2):
+
+        particle[j].append(random.randint(-side,side)/10*(i/N/3))
+
+    while 1:
+
+        #使粒子随机行走
+        direction=random.randint(0,3)
+
+        if direction==0:
+
+            particle[0][i]+=0.05
+
+        if direction==1:
+
+            particle[0][i]-=0.05
+
+        if direction==2:
+
+            particle[1][i]+=0.05
+
+        if direction==3:
+
+            particle[1][i]-=0.05
+
+        r=0
+        r=cal_r(particle[0][i],particle[1][i])
+
+        #剔除超出区间或者在零点的粒子
+        if r>10:
+
+            particle[0][i]=0
+            particle[1][i]=0
+            break
+
+        if i==0:
+
+            particle[0][i]=0
+            particle[1][i]=0
+            break
+        r1=0
+
+        #判定粒子的生长位置
+        for k in range(i):
+
+            dx=particle[0][i]-particle[0][k]
+            dy=particle[1][i]-particle[1][k]
+            r1=cal_r(dx,dy)
+            
+            if r1<=0.25:
+
+                break
+        if r1<=0.25:
+
+            break
+
+show_graph(particle[0],particle[1])
